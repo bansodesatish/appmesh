@@ -1,0 +1,69 @@
+---
+# Source: appmesh/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog-frontend-node-svc
+  namespace: appmesh
+  labels:
+    helm.sh/chart: appmesh-0.1.0
+    app.kubernetes.io/name: appmesh
+    app.kubernetes.io/instance: catalog
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+      app.kubernetes.io/name: appmesh
+      app.kubernetes.io/instance: catalog
+      app.kubernetes.io/appName: frontend-node
+  ports:     
+    -
+      targetPort: 9000
+      name: http
+      port: 9000
+---
+# Source: appmesh/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog-prodcatalog-svc
+  namespace: appmesh
+  labels:
+    helm.sh/chart: appmesh-0.1.0
+    app.kubernetes.io/name: appmesh
+    app.kubernetes.io/instance: catalog
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+      app.kubernetes.io/name: appmesh
+      app.kubernetes.io/instance: catalog
+      app.kubernetes.io/appName: prodcatalog
+  ports:     
+    -
+      targetPort: 5000
+      name: http
+      port: 5000
+---
+# Source: appmesh/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog-proddetail-svc
+  namespace: appmesh
+  labels:
+    helm.sh/chart: appmesh-0.1.0
+    app.kubernetes.io/name: appmesh
+    app.kubernetes.io/instance: catalog
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+      app.kubernetes.io/name: appmesh
+      app.kubernetes.io/instance: catalog
+      app.kubernetes.io/appName: proddetail
+  ports:     
+    -
+      targetPort: 3000
+      name: http
+      port: 3000

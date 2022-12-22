@@ -1,0 +1,188 @@
+---
+# Source: appmesh/templates/deployment.yaml
+apiVersion: apps/v1 
+kind: Deployment 
+metadata: 
+  name: catalog-frontend-node
+  namespace: appmesh
+  labels:
+    helm.sh/chart: appmesh-0.1.0
+    app.kubernetes.io/name: appmesh
+    app.kubernetes.io/instance: catalog
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations: 
+    reloader.stakater.com/auto: "true"
+spec:
+  selector: 
+    matchLabels:
+      app.kubernetes.io/name: appmesh
+      app.kubernetes.io/instance: catalog
+      app.kubernetes.io/appName: frontend-node
+  strategy: Recreate
+  replicas: 1
+  template:
+    metadata:  
+      labels:
+        app.kubernetes.io/name: appmesh
+        app.kubernetes.io/instance: catalog
+        app.kubernetes.io/appName: frontend-node
+    spec:
+      serviceAccountName: prodcatalog-envoy-proxies
+      containers:        
+        - name: frontend-node
+          image: docker.io/bansodesatish/frontend_node:latest
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 200m
+              memory: 128Mi
+          ports:     
+            -
+              containerPort: 9000
+              name: http
+          env: 
+            - name: BASE_URL
+              value: "http://catalog-prodcatalog-svc.appmesh.svc.cluster.local:5000/products/"
+          envFrom: []
+          livenessProbe: 
+            failureThreshold: 3
+            httpGet:
+              path: /ping
+              port: 9000
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            successThreshold: 3
+            timeoutSeconds: 1
+          readinessProbe: 
+            httpGet:
+              path: /ping
+              port: 9000
+            successThreshold: 3
+---
+# Source: appmesh/templates/deployment.yaml
+apiVersion: apps/v1 
+kind: Deployment 
+metadata: 
+  name: catalog-prodcatalog
+  namespace: appmesh
+  labels:
+    helm.sh/chart: appmesh-0.1.0
+    app.kubernetes.io/name: appmesh
+    app.kubernetes.io/instance: catalog
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations: 
+    reloader.stakater.com/auto: "true"
+spec:
+  selector: 
+    matchLabels:
+      app.kubernetes.io/name: appmesh
+      app.kubernetes.io/instance: catalog
+      app.kubernetes.io/appName: prodcatalog
+  strategy: Recreate
+  replicas: 1
+  template:
+    metadata:  
+      labels:
+        app.kubernetes.io/name: appmesh
+        app.kubernetes.io/instance: catalog
+        app.kubernetes.io/appName: prodcatalog
+    spec:
+      serviceAccountName: prodcatalog-envoy-proxies
+      containers:        
+        - name: prodcatalog
+          image: docker.io/bansodesatish/product_catalog:latest
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 200m
+              memory: 128Mi
+          ports:     
+            -
+              containerPort: 5000
+              name: http
+          env: 
+            - name: AGG_APP_URL
+              value: "http://catalog-proddetail-svc.appmesh.svc.cluster.local:3000/catalogDetail"
+          envFrom: []
+          livenessProbe: 
+            failureThreshold: 3
+            httpGet:
+              path: /products/ping
+              port: 5000
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            successThreshold: 3
+            timeoutSeconds: 1
+          readinessProbe: 
+            httpGet:
+              path: /products/ping
+              port: 5000
+            successThreshold: 3
+---
+# Source: appmesh/templates/deployment.yaml
+apiVersion: apps/v1 
+kind: Deployment 
+metadata: 
+  name: catalog-proddetail
+  namespace: appmesh
+  labels:
+    helm.sh/chart: appmesh-0.1.0
+    app.kubernetes.io/name: appmesh
+    app.kubernetes.io/instance: catalog
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations: 
+    reloader.stakater.com/auto: "true"
+spec:
+  selector: 
+    matchLabels:
+      app.kubernetes.io/name: appmesh
+      app.kubernetes.io/instance: catalog
+      app.kubernetes.io/appName: proddetail
+  strategy: Recreate
+  replicas: 1
+  template:
+    metadata:  
+      labels:
+        app.kubernetes.io/name: appmesh
+        app.kubernetes.io/instance: catalog
+        app.kubernetes.io/appName: proddetail
+    spec:
+      serviceAccountName: prodcatalog-envoy-proxies
+      containers:        
+        - name: proddetail
+          image: docker.io/bansodesatish/catalog_detail:latest
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 200m
+              memory: 128Mi
+          ports:     
+            -
+              containerPort: 3000
+              name: http
+          livenessProbe: 
+            failureThreshold: 3
+            httpGet:
+              path: /ping
+              port: 3000
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            successThreshold: 3
+            timeoutSeconds: 1
+          readinessProbe: 
+            httpGet:
+              path: /ping
+              port: 3000
+            successThreshold: 3

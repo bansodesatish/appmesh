@@ -1,0 +1,132 @@
+
+apps: 
+  frontend-node:
+    deploymentStrategy: Recreate # Recreate/Rolloing
+    replicas: 1
+    serviceAccount: 
+      create: true
+      name: prodcatalog-envoy-proxies    
+    appmesh:
+      backends: 
+      - prodcatalog     
+    containers: 
+      frontend-node:
+        pullPolicy: Always 
+        image: 
+          repository: bansodesatish/frontend_node
+          tag: latest
+        ports:
+        - port: 9000
+          name: http
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 9000
+          initialDelaySeconds: 0
+          periodSeconds: 10
+          timeoutSeconds: 1
+          failureThreshold: 3
+          successThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 9000
+          successThreshold: 3
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+          requests:
+            cpu: 200m
+            memory: 128Mi
+        environmentVeriables:
+          from: 
+            backendApplicationFQName:
+            - name: BASE_URL 
+              backendAppName: prodcatalog
+              placeHolder: HOSTNAME
+              value: "http://HOSTNAME:5000/products/"
+
+  proddetail:
+    deploymentStrategy: Recreate # Recreate/Rolloing
+    replicas: 1
+    serviceAccount: 
+      create: false
+      name: prodcatalog-envoy-proxies 
+    containers: 
+      proddetail:
+        pullPolicy: Always 
+        image: 
+          repository: bansodesatish/catalog_detail
+          tag: latest
+        ports:
+        - port: 3000
+          name: http
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 3000
+          initialDelaySeconds: 0
+          periodSeconds: 10
+          timeoutSeconds: 1
+          failureThreshold: 3
+          successThreshold: 3
+        readinessProbe:
+            httpGet:
+              path: /ping
+              port: 3000
+            successThreshold: 3
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+          requests:
+            cpu: 200m
+            memory: 128Mi
+
+  prodcatalog:
+    deploymentStrategy: Recreate # Recreate/Rolloing
+    replicas: 1
+    serviceAccount: 
+      create: false
+      name: prodcatalog-envoy-proxies   
+    appmesh:
+      backends: 
+      - proddetail     
+    containers: 
+      prodcatalog:
+        pullPolicy: Always 
+        image: 
+          repository: bansodesatish/product_catalog
+          tag: latest
+        ports:
+        - port: 5000
+          name: http
+        livenessProbe:
+          httpGet:
+            path: /products/ping
+            port: 5000
+          initialDelaySeconds: 0
+          periodSeconds: 10
+          timeoutSeconds: 1
+          failureThreshold: 3
+          successThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /products/ping
+            port: 5000
+          successThreshold: 3
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+          requests:
+            cpu: 200m
+            memory: 128Mi    
+        environmentVeriables:
+          from: 
+            backendApplicationFQName:
+            - name: AGG_APP_URL 
+              backendAppName: proddetail
+              placeHolder: HOSTNAME
+              value: "http://HOSTNAME:3000/catalogDetail"

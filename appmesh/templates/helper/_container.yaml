@@ -1,0 +1,44 @@
+{{- define "appmesh.container" -}}
+- name: {{ .name }}
+  image: {{ include "appmesh.image" .val }}
+  {{- if .val.pullPolicy }}
+  imagePullPolicy: {{ .val.pullPolicy }}
+  {{- end }}
+  {{- if .val.command }}
+  command: {{- include "appmesh.tplvalues.render" ( dict "value" .val.command "context" .context ) | nindent 4}}
+  {{- end }}
+  {{- if .val.args }}
+  args: {{- include "appmesh.tplvalues.render" ( dict "value" .val.args "context" .context ) | nindent 4}}
+  {{- end }}
+  {{- if .val.resources }}
+  resources: {{- toYaml .val.resources | nindent 4 }}
+  {{- end }}
+  {{- if .val.ports }}
+  ports: {{ default "[]" ( include "appmesh.ports.port" .val.ports ) | indent 4}}
+  {{- end }}  
+  {{- if .val.environmentVeriables }}
+  env: {{ default "[]" (  include "appmesh.envvar.env" ( dict "values" .val.environmentVeriables.from "context" .context ) ) }}
+  envFrom: {{ default "[]" (  include "appmesh.envvar.envFrom" .val.environmentVeriables.from ) }}
+  {{- end }}
+  {{- if .val.volumeMounts }}
+  volumeMounts: {{ include "appmesh.volumeMount" ( dict "volumeMounts" .val.volumeMounts "volumes" .volumes ) | nindent 4  }}
+  {{- end }}
+  {{- if .val.livenessProbe }}
+  livenessProbe: {{ .val.livenessProbe | toYaml | nindent 4 }}
+  {{- end }}
+  {{- if .val.readinessProbe }}
+  readinessProbe: {{ .val.readinessProbe | toYaml | nindent 4 }}
+  {{- end }}
+  {{- if .val.startupProbe }}
+  startupProbe: {{ .val.startupProbe | toYaml | nindent 4 }}
+  {{- end }}
+{{- end -}}
+
+
+{{- define "appmesh.containers" -}}
+{{- $contexts := .context -}}
+{{- $volumes := .values.volumes -}}
+{{- range $key, $val := .values.containers -}}
+{{ include "appmesh.container" ( dict "name" $key "val" $val "context" $contexts "volumes" $volumes ) | nindent 2 }}
+{{- end -}}
+{{- end -}}

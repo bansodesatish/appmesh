@@ -1,0 +1,104 @@
+---
+# Source: appmesh/templates/virtual-node.yaml
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualNode
+metadata:
+  name: catalog-frontend-node-vn
+  namespace: appmesh
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: appmesh
+      app.kubernetes.io/instance: catalog
+      app.kubernetes.io/appName: frontend-node
+  listeners: 
+    - portMapping:
+        port: 9000
+        protocol: http
+      healthCheck:
+        protocol: http
+        path: /ping
+        port: 9000
+        healthyThreshold: 3
+        unhealthyThreshold: 3
+        timeoutMillis: 1000
+        intervalMillis: 10000
+  backends:
+    - virtualService:
+        virtualServiceRef:
+          name: prodcatalog
+  serviceDiscovery:
+    dns:
+      hostname: catalog-frontend-node-svc.appmesh.svc.cluster.local
+  logging:
+    accessLog:
+      file:
+        path: /dev/stdout
+---
+# Source: appmesh/templates/virtual-node.yaml
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualNode
+metadata:
+  name: catalog-prodcatalog-vn
+  namespace: appmesh
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: appmesh
+      app.kubernetes.io/instance: catalog
+      app.kubernetes.io/appName: prodcatalog
+  listeners: 
+    - portMapping:
+        port: 5000
+        protocol: http
+      healthCheck:
+        protocol: http
+        path: /products/ping
+        port: 5000
+        healthyThreshold: 3
+        unhealthyThreshold: 3
+        timeoutMillis: 1000
+        intervalMillis: 10000
+  backends:
+    - virtualService:
+        virtualServiceRef:
+          name: proddetail
+  serviceDiscovery:
+    dns:
+      hostname: catalog-prodcatalog-svc.appmesh.svc.cluster.local
+  logging:
+    accessLog:
+      file:
+        path: /dev/stdout
+---
+# Source: appmesh/templates/virtual-node.yaml
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualNode
+metadata:
+  name: catalog-proddetail-vn
+  namespace: appmesh
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: appmesh
+      app.kubernetes.io/instance: catalog
+      app.kubernetes.io/appName: proddetail
+  listeners: 
+    - portMapping:
+        port: 3000
+        protocol: http
+      healthCheck:
+        protocol: http
+        path: /ping
+        port: 3000
+        healthyThreshold: 3
+        unhealthyThreshold: 3
+        timeoutMillis: 1000
+        intervalMillis: 10000
+  serviceDiscovery:
+    dns:
+      hostname: catalog-proddetail-svc.appmesh.svc.cluster.local
+  logging:
+    accessLog:
+      file:
+        path: /dev/stdout

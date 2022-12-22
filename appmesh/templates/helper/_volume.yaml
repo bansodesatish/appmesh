@@ -1,0 +1,16 @@
+{{- define "appmesh.volume" -}}
+{{ . | toYaml }}
+{{- end -}}
+
+
+{{- define "appmesh.volumeMount" -}}
+{{- $volume := .volumes -}}
+{{- $volumeMount := .volumeMounts -}}
+{{- range $valumesIndex, $valumesValue := $volume }}
+  {{- range $valumeMountIndex, $valumeMountValue := $volumeMount -}}
+    {{- if eq $valumesValue.name $valumeMountValue.name -}}
+    - {{- $valumeMountValue | toYaml | nindent 2 -}}  
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- end -}}

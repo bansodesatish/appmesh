@@ -1,0 +1,8 @@
+---
+# Source: appmesh/templates/configmap.yaml
+apiVersion: v1
+data:
+  myvalue: Hello World
+kind: ConfigMap
+metadata:
+  name: appmesh-catalog

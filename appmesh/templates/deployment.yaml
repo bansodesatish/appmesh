@@ -1,0 +1,33 @@
+{{- range $appName, $appValues := .Values.apps }}
+---
+apiVersion: apps/v1 
+kind: Deployment 
+metadata: 
+  name: {{ template "appmesh.name.resourceName" ( dict "appName" $appName "context" $ ) }}
+  namespace: {{ template "appmesh.namespace" $.Release.Namespace }}
+  labels:
+   {{- include "appmesh.labels" $ | nindent 4 }}
+  annotations: 
+    reloader.stakater.com/auto: "true"
+spec:
+  selector: 
+    matchLabels: 
+      {{- include "appmesh.selectorLabels" $ | nindent 6 }} 
+      {{- include "appmesh.appLabels" $appName | nindent 6 }}
+  strategy: {{ $appValues.deploymentStrategy }}
+  replicas: {{ default 1 $appValues.replicas }}
+  template:
+    metadata:  
+      labels: 
+        {{- include "appmesh.selectorLabels" $ | nindent 8 }} 
+        {{- include "appmesh.appLabels" $appName | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "appmesh.serviceAccountName" ( dict "appName" $appName  "values" $appValues "context" $  ) }}
+      {{- if $appValues.initContainers }}
+      initContainers:  {{ include "appmesh.containers"  ( dict "values" $appValues.initContainers "context" $ )  | indent 6 }}
+      {{- end }}
+      containers:  {{ include "appmesh.containers"  ( dict "appName" $appName "values" $appValues "context" $ )  | indent 6 }}
+      {{- if $appValues.volumes }}
+      volumes: {{ default "[]" ( include "appmesh.volume" $appValues.volumes ) | nindent 8 }}
+      {{- end }}
+{{- end -}}

@@ -1,0 +1,35 @@
+{{- define "appmesh.ports.port" -}}
+{{- range $index, $ports := . }}
+- {{- if (and  ( not $ports.targetPort ) $ports.port ) }}
+  containerPort: {{ $ports.port }}
+  {{- else }}
+  containerPort: {{ $ports.targetPort }}
+  {{- end }}
+  {{- if $ports.name }}
+  name: {{ $ports.name }}
+  {{- end }}
+{{- end }}  
+{{- end }}
+
+{{- define "appmesh.ports.servicePort" -}}
+{{- range $containerIndex, $container := . }}
+{{- range $portsIndex, $ports := $container.ports }}
+- {{- if (and  ( not $ports.targetPort ) $ports.port ) }}
+  targetPort: {{ $ports.port }}
+  {{- else }}
+  targetPort: {{ $ports.targetPort }}
+  {{- end }}
+  {{- if $ports.name }}
+  name: {{ $ports.name }}
+  {{- end }}
+  {{- if $ports.protocol }}
+  protocol: {{ $ports.protocol }}
+  {{- end }}
+  {{- if (and  ( not $ports.port ) $ports.targetPort ) }}
+  port: {{ $ports.targetPort }}
+  {{- else }}
+  port: {{ $ports.port }}
+  {{- end }}
+{{- end }}  
+{{- end }}
+{{- end -}}

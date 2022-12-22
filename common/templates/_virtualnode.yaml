@@ -1,0 +1,47 @@
+
+
+{{- define "appmesh.virtualnode.listener" -}}
+- portMapping:
+    {{- with .portsValue }}
+    port: {{ .port | int }}
+    protocol: {{ default "http" .protocol }}
+  healthCheck:
+    protocol: {{ default "http" .protocol }}
+    {{- end }}
+    {{- with .healthCheck }}
+    path: {{ default "/" .httpGet.path }}
+    {{- if .httpGet.port }}
+    port: {{ .httpGet.port | int }}
+    {{- end }}
+    healthyThreshold: {{ default 3 ( .successThreshold | int ) }}
+    unhealthyThreshold: {{ default 3 ( .failureThreshold | int ) }}
+    timeoutMillis: {{ default 1000 ( .timeoutSeconds | int | mul 1000 ) }}
+    intervalMillis: {{ default 5000 ( .periodSeconds | int | mul 1000 ) }}
+    {{- end }}
+    {{- if not .healthCheck }}    
+    path: {{ default "/"  }}
+    healthyThreshold: {{ default 3  }}
+    unhealthyThreshold: {{ default 3  }}
+    timeoutMillis: {{ default 1000  }}
+    intervalMillis: {{ default 5000  }}
+    {{- end }}
+{{- end -}}
+{{- define "appmesh.virtualnode.listeners" -}}
+{{-  $context := .context -}}
+{{- range $containerName, $containerValues := .values.containers }}
+  {{- range $portsIndex, $portsValue := $containerValues.ports }}
+      {{- include "appmesh.virtualnode.listener" ( dict "portsValue" $portsValue "healthCheck" $containerValues.livenessProbe ) }}
+  {{- end }}
+{{- end }}
+{{- end -}}
+
+{{- define "appmesh.virtualnode.backend" -}}
+- virtualService:
+    virtualServiceRef:
+      name: {{ . }}
+{{- end -}}
+{{- define "appmesh.virtualnode.backends" -}}
+{{- range $index, $value := . }}
+  {{- include "appmesh.virtualnode.backend" $value }}
+{{- end }}
+{{- end -}}

@@ -1,0 +1,115 @@
+
+
+apps: 
+  frontend:
+    deploymentStrategy: Recreate # Recreate/Rolloing
+    replicas: 3
+    serviceAccount: 
+      create: true
+      name:  
+    initContainers:
+      initContainer: 
+        pullPolicy: Always 
+        image: 
+          registry:   
+          repository: bansodesatish/nginx
+          tag: latest
+          digest: ""
+        command:
+          - /bin/bash
+          - -ec        
+        environmentVeriables:          
+    containers: 
+      nginx:
+        pullPolicy: Always 
+        image: 
+          registry:   
+          repository: bansodesatish/nginx
+          tag: latest
+          digest: ""
+        command: ["/bin/bash","-ec"]
+        args: ["/bin/bash","-ec"]
+        livenessProbe:
+          exec:
+            command:
+            - cat
+            - /tmp/healthy
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        readinessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+          requests:
+            cpu: 200m
+            memory: 128Mi
+        environmentVeriables:
+          from: 
+            keyValues:
+              key1: val1 
+            secrets:
+            - envName: env2
+              secretName: secretName
+              secretKey: 
+            configmaps:
+            - envName: env3 
+              configMapName: configMapName 
+              configMapKey: configMapKey 
+            backendApplicationFQName:
+            - name: BASE_URL 
+              backendAppName: backend
+              placeHolder: HOSTNAME
+              value: "http://$HOSTNAME:3000/catalogDetail"
+        volumeMounts:
+        - mountPath: /cache
+          name: cache-volume
+      busybox:
+        pullPolicy: Always 
+        image: 
+          registry: 
+          repository: bansodesatish/busybox
+          tag: latest
+        environmentVeriables:
+          from: 
+            keyValues:
+              key1: val1 
+        ports:
+        - name: http
+          protocol: TCP
+          port: 80
+          targetPort: 9376
+        - name: https
+          protocol: TCP
+          port: 443
+          targetPort:   
+
+  backend: 
+    deploymentStrategy: Recreate # Recreate/Rolloing
+    serviceAccount: 
+      create: false
+      name: serviceaccount 
+    containers: 
+      nginx:
+        pullPolicy: Always 
+        image: 
+          registry:   
+          repository: bansodesatish/nginx
+          tag: latest
+        volumeMounts:
+        - mountPath: /cache
+          name: cache-volume
+      busybox:
+        pullPolicy: Always 
+        image: 
+          registry: 
+          repository: bansodesatish/busybox
+          tag: latest
+    volumes:
+    - name: cache-volume
+      emptyDir:
+        sizeLimit: 500Mi

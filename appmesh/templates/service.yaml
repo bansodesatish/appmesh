@@ -1,0 +1,15 @@
+{{- range $appName, $appValues := .Values.apps }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "appmesh.name.serviceName" ( dict "appName" $appName "context" $ ) }}
+  namespace: {{ template "appmesh.namespace" $.Release.Namespace }}
+  labels:
+   {{- include "appmesh.labels" $ | nindent 4 }}
+spec:
+  selector:
+    {{- include "appmesh.selectorLabels" $ | nindent 6 }} 
+    {{- include "appmesh.appLabels" $appName | nindent 6 }}
+  ports: {{ include "appmesh.ports.servicePort" $appValues.containers | indent 4 }}
+{{- end -}}

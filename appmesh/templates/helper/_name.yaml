@@ -1,0 +1,36 @@
+{{/*
+Create a default fully qualified app name.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+If release name contains chart name it will be used as a full name.
+*/}}
+{{- define "appmesh.name.fullname" -}}
+{{- printf "%s-%s" .Release.Name .Chart.Name  | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "appmesh.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+
+
+{{/*
+Create a default fully qualified app name.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+If release name contains chart name it will be used as a full name.
+*/}}
+{{- define "appmesh.name.resourceName" -}}
+{{- printf "%s-%s" .context.Release.Name .appName | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "appmesh.name.serviceName" -}}
+{{- printf "%s-%s" (include "appmesh.name.resourceName" (dict "appName" .appName "context" .context) ) "svc" | trunc 63 | trimSuffix "-" }}
+{{- end -}}
+
+{{- define "appmesh.name.serviceFQName" -}}
+{{- $fullname := include "appmesh.name.serviceName" ( dict "appName" .appName "context" .context ) -}}
+{{- printf "%s.%s.svc.cluster.local" $fullname ( include "appmesh.namespace" .context.Release.Namespace ) -}}
+{{- end -}}
